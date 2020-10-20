@@ -62,7 +62,7 @@ matrix:
           packages:
             - cfengine-community=3.15.*
 
-    - arch; arm64
+    - arch: arm64
       env: CF_VERSION=3.15.x
       addons:
         apt:
