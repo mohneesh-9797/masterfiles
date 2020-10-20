@@ -8,6 +8,9 @@ matrix:
 
     # JOB 0  --  first because it's the fastest
     - env: STYLE_CHECK_JOB=1
+    # JOB 0  --  first because it's the fastest
+    - arch: arm64
+      env: STYLE_CHECK_JOB=1
 
     # JOB 1
     - env: JOB_TYPE=valgrind_health_check
@@ -17,8 +20,28 @@ matrix:
       script:
         - sudo ./travis-scripts/valgrind.sh
 
+    - arch: arm64
+      env: JOB_TYPE=valgrind_health_check
+      before_install:
+        - chmod ug+x ./travis-scripts/*
+        - ./travis-scripts/before_install.sh
+      script:
+        - sudo ./travis-scripts/valgrind.sh
+
     # JOB 2
     - env: CF_VERSION=master
+      install:
+        - BRANCH=$CF_VERSION
+        - DATE=`wget -qO- https://builds.cfengine.com/pub/nightly/$BRANCH/FOOTER.html --no-check-certificate | grep -o 'latest.>[^<]*'`
+        - DATE="${DATE#*>}"
+        - DIR_URL="https://builds.cfengine.com/pub/nightly/master/$DATE/output/PACKAGES_x86_64_linux_debian_7"
+        - FILE=`wget --no-check-certificate -qO- "$DIR_URL" | grep -o '[^>]*\.deb<'`
+        - FILE="${FILE%%<*}"
+        - wget --no-check-certificate $DIR_URL/$FILE
+        - sudo dpkg -i $FILE
+
+    - arch: arm64
+      env: CF_VERSION=master
       install:
         - BRANCH=$CF_VERSION
         - DATE=`wget -qO- https://builds.cfengine.com/pub/nightly/$BRANCH/FOOTER.html --no-check-certificate | grep -o 'latest.>[^<]*'`
@@ -39,6 +62,16 @@ matrix:
           packages:
             - cfengine-community=3.15.*
 
+    - arch; arm64
+      env: CF_VERSION=3.15.x
+      addons:
+        apt:
+          sources:
+            - sourceline: "deb https://cfengine-package-repos.s3.amazonaws.com/pub/apt/packages stable main"
+              key_url: https://cfengine-package-repos.s3.amazonaws.com/pub/gpg.key
+          packages:
+            - cfengine-community=3.15.*
+
     # JOB 4
     - env: CF_VERSION=3.12.x
       addons:
@@ -49,8 +82,21 @@ matrix:
           packages:
             - cfengine-community=3.12.*
 
+    - arch: arm64
+      env: CF_VERSION=3.12.x
+      addons:
+        apt:
+          sources:
+            - sourceline: "deb https://cfengine-package-repos.s3.amazonaws.com/pub/apt/packages stable main"
+              key_url: https://cfengine-package-repos.s3.amazonaws.com/pub/gpg.key
+          packages:
+            - cfengine-community=3.12.*
+
+
+
     # JOB 5
-    - env: CF_VERSION=3.10.x
+    - arch: arm64
+      env: CF_VERSION=3.10.x
       addons:
         apt:
           sources:
